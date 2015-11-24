@@ -43,7 +43,9 @@ class FakeReviewClassifier(object):
             review = review_object["review"]
             # pronoun_count = self.GetNumberofPronouns(review)
             feat.append(self.GetPercentageOfSentimentWords(review))
-            feat.append(self.GetNumberofPronouns(review))
+            pronoun_count, verb_count = self.GetNumberofPronouns(review)
+            feat.append(pronoun_count)
+            feat.append(verb_count)
             features.append(feat)
             # features.append(pronoun_count)
             if(review_object["sentiment"] == "True"):
@@ -73,7 +75,9 @@ class FakeReviewClassifier(object):
             # test_features.reshape(1, -1)
             # test_features.append(self.GetPercentageOfSentimentWords(test_review))
             feat.append(self.GetPercentageOfSentimentWords(test_review))
-            feat.append(self.GetNumberofPronouns(test_review))
+            pronoun_count, verb_count = self.GetNumberofPronouns(test_review)
+            feat.append(pronoun_count)
+            feat.append(verb_count)
             test_features.append(feat)
             if rev["sentiment"] == "True":
                 test_labels.append(1)
@@ -90,6 +94,7 @@ class FakeReviewClassifier(object):
     def GetNumberofPronouns(self, review):
         # tokenize the review
         text = nltk.word_tokenize(review)
+        # print nltk.pos_tag(text)
         pos_count = Counter(elem[1] for elem in nltk.pos_tag(text))
         # print pos_count
         # Get number of pronouns
@@ -97,8 +102,12 @@ class FakeReviewClassifier(object):
             pronoun_count = pos_count["NNP"]
         else:
             pronoun_count = 0
+        if "VBP" in pos_count:
+            verb_count = pos_count["VBP"]
+        else:
+            verb_count = 0
         # print pronoun_count
-        return pronoun_count
+        return (pronoun_count, verb_count)
 
     def GetPercentageOfSentimentWords(self, review):
         text = nltk.word_tokenize(review)
