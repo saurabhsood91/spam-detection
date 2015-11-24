@@ -2,7 +2,7 @@
 # This module parses the file and creates a dict of all reviews
 from collections import Counter
 import re
-import ipdb
+import codecs
 
 class FileReader(object):
     def __init__(self, filename, sentiment=None):
@@ -44,13 +44,13 @@ class FileReader(object):
     def RemovePunctuation(self, str):
         # Remove commas, full stops, semicolons, /, hyphens
         str = str.replace(",", " ")
-        str = str.replace(".", " ")
+        # str = str.replace(".", " ")
         str = str.replace(";", " ")
         str = str.replace(";", " ")
         str = str.replace("/", " ")
         str = str.replace("-", " ")
         str = str.replace("!", " ")
-        str = str.lower()
+        # str = str.lower()
         return str
 
     def ParseFile(self):
@@ -58,7 +58,7 @@ class FileReader(object):
         self.word_count = 0
         # Parse the file and create the dict
         if self.filename != None:
-            with open(self.filename, "rb") as training_file:
+            with codecs.open(self.filename, "rb", encoding='utf8') as training_file:
                 str = ""
                 for line in training_file:
                     # Get ID

@@ -4,19 +4,18 @@ from filereader import FileReader
 import random
 import re
 from collections import Counter
-import ipdb
 
 class NaiveBayesClassifier(object):
     def __init__(self, positive_file, negative_file):
         # Parse positive reviews
-        self.pos_filereader = FileReader(positive_file, "positive")
+        self.pos_filereader = FileReader(positive_file, "True")
         self.positive_words = self.pos_filereader.ParseFile()
         # self.positive_word_count = len(self.positive_words)
 
         self.positive_reviews = self.pos_filereader.GetReviewList()
         # print self.positive_reviews
 
-        self.neg_filereader = FileReader(negative_file, "negative")
+        self.neg_filereader = FileReader(negative_file, "Fake")
         self.negative_words = self.neg_filereader.ParseFile()
         self.negative_reviews = self.neg_filereader.GetReviewList()
 
@@ -45,7 +44,7 @@ class NaiveBayesClassifier(object):
             str += review["review"]
             words = re.findall(r'\w+', review["review"])
             wc = len(words)
-            if review["sentiment"] == "positive":
+            if review["sentiment"] == "True":
                 self.positive_word_count += wc
                 self.pos_words.extend(words)
             else:
@@ -84,6 +83,7 @@ class NaiveBayesClassifier(object):
             cur_review = cur_review.replace("/", " ")
             cur_review = cur_review.replace("-", " ")
             cur_review = cur_review.replace("!", " ")
+            cur_review = cur_review.replace("\"", "")
             cur_review = cur_review.lower()
             review_words = cur_review.split()
             positive_probability = 0
@@ -103,12 +103,12 @@ class NaiveBayesClassifier(object):
             # print positive_probability, negative_probability
             total += 1
             if positive_probability > negative_probability:
-                print review["id"], "\t" ,"POS"
-                if review["sentiment"] == "positive":
+                print review["id"], "\t" ,"True"
+                if review["sentiment"] == "True":
                     correct += 1
             else:
-                print review["id"], "\t" , "NEG"
-                if review["sentiment"] == "negative":
+                print review["id"], "\t" , "Fake"
+                if review["sentiment"] == "Fake":
                     correct += 1
         print "Accuracy: ", float(correct * 100 / total)
     def Classify(self, test_file):
