@@ -24,9 +24,9 @@ class FakeReviewClassifier(object):
         self.combined_reviews.extend(self.genuine_reviews)
         self.combined_reviews.extend(self.fake_reviews)
         # Split 80-20
-        data_lenth = len(self.combined_reviews)
+        data_length = len(self.combined_reviews)
         random.shuffle(self.combined_reviews)
-        train_set_length = int(0.9 * data_lenth)
+        train_set_length = int(0.9 * data_length)
         self.training_set = self.combined_reviews[:train_set_length]
         self.test_set = self.combined_reviews[train_set_length:]
         # print self.test_set
@@ -41,9 +41,9 @@ class FakeReviewClassifier(object):
             # Get review text
             feat = []
             review = review_object["review"]
-            # pronoun_count = self.GetNumberofPronouns(review)
+            # pronoun_count = self.GetNumberofPronounsAndVerbs(review)
             feat.append(self.GetPercentageOfSentimentWords(review))
-            pronoun_count, verb_count = self.GetNumberofPronouns(review)
+            pronoun_count, verb_count = self.GetNumberofPronounsAndVerbs(review)
             feat.append(pronoun_count)
             feat.append(verb_count)
             features.append(feat)
@@ -71,11 +71,11 @@ class FakeReviewClassifier(object):
         for rev in self.test_set:
             feat = []
             test_review = rev["review"]
-            # test_features = np.matrix(self.GetNumberofPronouns(test_review))
+            # test_features = np.matrix(self.GetNumberofPronounsAndVerbs(test_review))
             # test_features.reshape(1, -1)
             # test_features.append(self.GetPercentageOfSentimentWords(test_review))
             feat.append(self.GetPercentageOfSentimentWords(test_review))
-            pronoun_count, verb_count = self.GetNumberofPronouns(test_review)
+            pronoun_count, verb_count = self.GetNumberofPronounsAndVerbs(test_review)
             feat.append(pronoun_count)
             feat.append(verb_count)
             test_features.append(feat)
@@ -91,7 +91,7 @@ class FakeReviewClassifier(object):
         print log_reg_classifier.score(X1, y1)
 
 
-    def GetNumberofPronouns(self, review):
+    def GetNumberofPronounsAndVerbs(self, review):
         # tokenize the review
         text = nltk.word_tokenize(review)
         # print nltk.pos_tag(text)

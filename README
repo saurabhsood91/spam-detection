@@ -1,0 +1,9 @@
+Detecting Opinion Spam in Hotel Reviews by training on a known set of Genuine and Fake Reviews.
+Uses the following:
+- scikit-learn for training a Machine Learning model using Logistic Regression
+- nltk for POS tagging
+
+The following features are being used:
+- Number of sentiment carrying words in the review
+- The number of verbs in the review
+- The number of Proper Nouns in a review
