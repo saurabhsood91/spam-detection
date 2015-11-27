@@ -7,6 +7,8 @@ import codecs
 from sklearn.linear_model import LogisticRegression
 from sklearn import cross_validation
 from sklearn.metrics import accuracy_score
+from sklearn import svm
+from sklearn import neighbors
 import cPickle as pickle
 
 class FakeReviewClassifier(object):
@@ -53,11 +55,11 @@ class FakeReviewClassifier(object):
             # feat.append(self.GetLengthofReview(review))
             feat.append(self.GetSentimentWordCount(id))
             # pronoun_count, verb_count = self.GetNumberofPronounsAndVerbs(review, id)
-            pronoun_count, verb_count= self.GetPosCounts(id)
+            pronoun_count, verb_count = self.GetPosCounts(id)
             feat.append(pronoun_count)
             feat.append(verb_count)
             # feat.append(noun_count)
-            # feat.append(self.GetNumberofRelationshipWords(review))
+            feat.append(self.GetNumberofRelationshipWords(review))
             features.append(feat)
             # features.append(pronoun_count)
             if(review_object["sentiment"] == "True"):
@@ -68,12 +70,14 @@ class FakeReviewClassifier(object):
         # print features
 		# with open('review_pos', 'wb') as dump:
 		# 	pickle.dump(self.review_pos, dump, pickle.HIGHEST_PROTOCOL)
-		# with open('review_sentiment_counts', 'wb') as dump:
+		# with open('review_pos_sentiment_counts', 'wb') as dump:
 		# 	pickle.dump(self.review_sentiment_counts, dump, pickle.HIGHEST_PROTOCOL)
         X = np.matrix(features)
         # X = X.reshape(-1, 1)
         y = np.array(correct_labels)
         log_reg_classifier = LogisticRegression()
+        # log_reg_classifier = neighbors.KNeighborsClassifier(100)
+        # log_reg_classifier = svm.SVC()
         results_array = []
         loo = cross_validation.LeaveOneOut(len(self.combined_reviews))
         print "Predicting..."
@@ -146,7 +150,7 @@ class FakeReviewClassifier(object):
         print log_reg_classifier.score(X1, y1)
 
     def GetSentimentWordCount(self, id):
-        with open('review_sentiment_counts', 'rb') as dump_file:
+        with open('review_pos_sentiment_counts', 'rb') as dump_file:
             pickled_data = pickle.load(dump_file);
         return pickled_data[id]
 
@@ -179,7 +183,7 @@ class FakeReviewClassifier(object):
         for word in text:
             if word.lower() in rel_words:
                 relationship_word_count += 1
-        print relationship_word_count
+        # print relationship_word_count
         return relationship_word_count
 
 
@@ -211,11 +215,11 @@ class FakeReviewClassifier(object):
                     if word == line.strip():
                         sentiment_word_count += 1
                         break
-            with codecs.open('negative-words.txt', 'rb', encoding='utf8') as neg_words:
-                for line in neg_words:
-                    if word == line.strip():
-                        sentiment_word_count += 1
-                        break
+            # with codecs.open('negative-words.txt', 'rb', encoding='utf8') as neg_words:
+            #     for line in neg_words:
+            #         if word == line.strip():
+            #             sentiment_word_count += 1
+            #             break
         # sentiment_percentage = float(sentiment_word_count / word_count)
         # print sentiment_word_count
         self.review_sentiment_counts[id] = sentiment_word_count
