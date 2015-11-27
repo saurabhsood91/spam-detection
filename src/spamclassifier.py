@@ -5,6 +5,9 @@ import nltk
 import numpy as np
 import codecs
 from sklearn.linear_model import LogisticRegression
+from sklearn import cross_validation
+from sklearn.metrics import accuracy_score
+import cPickle as pickle
 
 class FakeReviewClassifier(object):
     def __init__(self, genuine_file, fake_file):
@@ -29,9 +32,57 @@ class FakeReviewClassifier(object):
         train_set_length = int(0.9 * data_length)
         self.training_set = self.combined_reviews[:train_set_length]
         self.test_set = self.combined_reviews[train_set_length:]
+        self.LeaveOneOut()
         # print self.test_set
         # print self.test_set
-        self.MaxEntClassifierTrain()
+        # self.GetNumberofBigramTypes(self.test_set[0]["review"])
+        # self.MaxEntClassifierTrain()
+
+    def LeaveOneOut(self):
+        features = []
+        correct_labels = []
+        self.review_pos = {}
+        self.review_sentiment_counts = {}
+        print len(self.training_set)
+        for review_object in self.combined_reviews:
+            # Get review text
+            feat = []
+            review = review_object["review"]
+            id = review_object["id"]
+            # feat.append(self.GetPercentageOfSentimentWords(review, id))
+            # feat.append(self.GetLengthofReview(review))
+            feat.append(self.GetSentimentWordCount(id))
+            # pronoun_count, verb_count = self.GetNumberofPronounsAndVerbs(review, id)
+            pronoun_count, verb_count = self.GetPosCounts(id)
+            feat.append(pronoun_count)
+            feat.append(verb_count)
+            # feat.append(self.GetNumberofRelationshipWords(review))
+            features.append(feat)
+            # features.append(pronoun_count)
+            if(review_object["sentiment"] == "True"):
+                correct_labels.append(1)
+            else:
+                correct_labels.append(0)
+            # correct_labels.append(review_object["id"])
+        # print features
+		# with open('review_pos', 'wb') as dump:
+		# 	pickle.dump(self.review_pos, dump, pickle.HIGHEST_PROTOCOL)
+		# with open('review_sentiment_counts', 'wb') as dump:
+		# 	pickle.dump(self.review_sentiment_counts, dump, pickle.HIGHEST_PROTOCOL)
+        X = np.matrix(features)
+        # X = X.reshape(-1, 1)
+        y = np.array(correct_labels)
+        log_reg_classifier = LogisticRegression()
+        results_array = []
+        loo = cross_validation.LeaveOneOut(len(self.combined_reviews))
+        print "Predicting..."
+        for training_index, test_index in loo:
+            X_train, X_test = X[training_index], X[test_index]
+            y_train, y_test = y[training_index], y[test_index]
+            log_reg_classifier.fit(X_train, y_train)
+            prediction_res = log_reg_classifier.predict(X_test)
+            results_array.append(accuracy_score(y_test, prediction_res))
+        print results_array.count(1) / float(len(results_array))
 
     def MaxEntClassifierTrain(self):
         features = []
@@ -41,11 +92,12 @@ class FakeReviewClassifier(object):
             # Get review text
             feat = []
             review = review_object["review"]
-            # pronoun_count = self.GetNumberofPronounsAndVerbs(review)
             feat.append(self.GetPercentageOfSentimentWords(review))
             pronoun_count, verb_count = self.GetNumberofPronounsAndVerbs(review)
             feat.append(pronoun_count)
             feat.append(verb_count)
+            feat.append(self.GetNumberofBigramTypes(review))
+            # feat.append(self.GetNumberofRelationshipWords(review))
             features.append(feat)
             # features.append(pronoun_count)
             if(review_object["sentiment"] == "True"):
@@ -78,6 +130,8 @@ class FakeReviewClassifier(object):
             pronoun_count, verb_count = self.GetNumberofPronounsAndVerbs(test_review)
             feat.append(pronoun_count)
             feat.append(verb_count)
+            # feat.append(self.GetNumberofBigramTypes(review))
+            # feat.append(self.GetNumberofRelationshipWords(test_review))
             test_features.append(feat)
             if rev["sentiment"] == "True":
                 test_labels.append(1)
@@ -90,12 +144,49 @@ class FakeReviewClassifier(object):
         y1 = np.array(test_labels)
         print log_reg_classifier.score(X1, y1)
 
+    def GetSentimentWordCount(self, id):
+        with open('review_sentiment_counts', 'rb') as dump_file:
+            pickled_data = pickle.load(dump_file);
+        return pickled_data[id]
 
-    def GetNumberofPronounsAndVerbs(self, review):
+    def GetPosCounts(self, id):
+        with open('review_pos', 'rb') as dump_file:
+            pickled_data = pickle.load(dump_file);
+        return (pickled_data[id]["NNP"], pickled_data[id]["VBP"])
+
+    def GetLengthofReview(self, review):
+        text = nltk.word_tokenize(review)
+        # print len(text)
+        return len(text)
+
+    def GetNumberofBigramTypes(self, review):
+        # print review
+        bigrams = nltk.bigrams(nltk.word_tokenize(review))
+        # number_of_bigram_types = len(Counter(bigrams))
+        final_list = [s for s in bigrams if s[0] == s[1]]
+        return len(final_list)
+        # print final_list
+        # return number_of_bigram_types
+        # print number_of_bigram_types
+
+    def GetNumberofRelationshipWords(self, review):
+        text = nltk.word_tokenize(review)
+        relationship_word_count = 0
+        rel_words = ['wife', 'husband', 'children', 'child', 'son', 'daughter', 'aunt', 'uncle', 'nephew', 'niece', 'sister', 'brother', 'grandfather', 'father', 'mother']
+        # with codecs.open('relation-lexicon.txt', 'rb', encoding='utf8') as rel_words:
+        for word in text:
+            if word.lower() in rel_words:
+                relationship_word_count += 1
+        print relationship_word_count
+        return relationship_word_count
+
+
+    def GetNumberofPronounsAndVerbs(self, review, id):
         # tokenize the review
         text = nltk.word_tokenize(review)
         # print nltk.pos_tag(text)
         pos_count = Counter(elem[1] for elem in nltk.pos_tag(text))
+        self.review_pos[id] = pos_count
         # print pos_count
         # Get number of pronouns
         if "NNP" in pos_count:
@@ -109,9 +200,8 @@ class FakeReviewClassifier(object):
         # print pronoun_count
         return (pronoun_count, verb_count)
 
-    def GetPercentageOfSentimentWords(self, review):
+    def GetPercentageOfSentimentWords(self, review, id):
         text = nltk.word_tokenize(review)
-        word_count = len(text)
         sentiment_word_count = 0
         for word in text:
             with codecs.open('positive-words.txt', 'rb', encoding='utf8') as pos_words:
@@ -126,4 +216,5 @@ class FakeReviewClassifier(object):
                         break
         # sentiment_percentage = float(sentiment_word_count / word_count)
         # print sentiment_word_count
+        self.review_sentiment_counts[id] = sentiment_word_count
         return sentiment_word_count
