@@ -43,7 +43,7 @@ class FakeReviewClassifier(object):
         correct_labels = []
         self.review_pos = {}
         self.review_sentiment_counts = {}
-        print len(self.training_set)
+        print len(self.combined_reviews)
         for review_object in self.combined_reviews:
             # Get review text
             feat = []
@@ -53,9 +53,10 @@ class FakeReviewClassifier(object):
             # feat.append(self.GetLengthofReview(review))
             feat.append(self.GetSentimentWordCount(id))
             # pronoun_count, verb_count = self.GetNumberofPronounsAndVerbs(review, id)
-            pronoun_count, verb_count = self.GetPosCounts(id)
+            pronoun_count, verb_count= self.GetPosCounts(id)
             feat.append(pronoun_count)
             feat.append(verb_count)
+            # feat.append(noun_count)
             # feat.append(self.GetNumberofRelationshipWords(review))
             features.append(feat)
             # features.append(pronoun_count)
@@ -152,7 +153,8 @@ class FakeReviewClassifier(object):
     def GetPosCounts(self, id):
         with open('review_pos', 'rb') as dump_file:
             pickled_data = pickle.load(dump_file);
-        return (pickled_data[id]["NNP"], pickled_data[id]["VBP"])
+        element = pickled_data[id]
+        return (element["NN"], element["VB"])
 
     def GetLengthofReview(self, review):
         text = nltk.word_tokenize(review)
