@@ -58,6 +58,7 @@ class FileReader(object):
         self.word_count = 0
         # Parse the file and create the dict
         if self.filename != None:
+            # print self.filename
             with codecs.open(self.filename, "rb", encoding='utf8') as training_file:
                 str = ""
                 for line in training_file:

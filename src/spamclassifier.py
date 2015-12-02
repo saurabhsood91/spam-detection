@@ -79,15 +79,52 @@ class FakeReviewClassifier(object):
         # log_reg_classifier = neighbors.KNeighborsClassifier(100)
         # log_reg_classifier = svm.SVC()
         results_array = []
-        loo = cross_validation.LeaveOneOut(len(self.combined_reviews))
-        print "Predicting..."
-        for training_index, test_index in loo:
-            X_train, X_test = X[training_index], X[test_index]
-            y_train, y_test = y[training_index], y[test_index]
-            log_reg_classifier.fit(X_train, y_train)
-            prediction_res = log_reg_classifier.predict(X_test)
-            results_array.append(accuracy_score(y_test, prediction_res))
-        print results_array.count(1) / float(len(results_array))
+        # loo = cross_validation.LeaveOneOut(len(self.combined_reviews))
+        # print "Predicting..."
+        # for training_index, test_index in loo:
+        #     X_train, X_test = X[training_index], X[test_index]
+        #     y_train, y_test = y[training_index], y[test_index]
+        #     log_reg_classifier.fit(X_train, y_train)
+        #     prediction_res = log_reg_classifier.predict(X_test)
+        #     results_array.append(accuracy_score(y_test, prediction_res))
+        # print results_array.count(1) / float(len(results_array))
+        log_reg_classifier.fit(X, y)
+
+        # Read test data
+        # with codecs.open("hotelDeceptionTest.txt", "rb", encoding='utf8') as test_file:
+        test_filereader = FileReader("hotelDeceptionTest.txt")
+        test_filereader.ParseFile()
+        test_reviews = test_filereader.GetReviewList()
+
+        features = []
+        for review_object in test_reviews:
+            # Get review text
+            feat = []
+            review = review_object["review"]
+            id = review_object["id"]
+            feat.append(self.GetPercentageOfSentimentWords(review, id))
+            # feat.append(self.GetLengthofReview(review))
+            # feat.append(self.GetPercentageOfSentimentWords(id))
+            pronoun_count, verb_count = self.GetNumberofPronounsAndVerbs(review, id)
+            # pronoun_count, verb_count = self.GetPosCounts(id)
+            feat.append(pronoun_count)
+            feat.append(verb_count)
+            # feat.append(noun_count)
+            feat.append(self.GetNumberofRelationshipWords(review))
+            features.append(feat)
+
+        X_test = np.matrix(features)
+        results_array = log_reg_classifier.predict(X_test)
+
+        # Print the results
+        for i in range(0, len(results_array)):
+            if results_array[i] == 1:
+                res = "Fake"
+            else:
+                res="Genuine"
+            print test_reviews[i]["id"]," : ", res
+
+
 
     def MaxEntClassifierTrain(self):
         features = []
