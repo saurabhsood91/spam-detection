@@ -34,13 +34,13 @@ class FakeReviewClassifier(object):
         train_set_length = int(0.9 * data_length)
         self.training_set = self.combined_reviews[:train_set_length]
         self.test_set = self.combined_reviews[train_set_length:]
-        self.LeaveOneOut()
+        self.MaxEntClassification()
         # print self.test_set
         # print self.test_set
         # self.GetNumberofBigramTypes(self.test_set[0]["review"])
         # self.MaxEntClassifierTrain()
 
-    def LeaveOneOut(self):
+    def MaxEntClassification(self):
         features = []
         correct_labels = []
         self.review_pos = {}

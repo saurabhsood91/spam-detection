@@ -6,4 +6,5 @@ Uses the following:
 The following features are being used:
 - Number of sentiment carrying words in the review
 - The number of verbs in the review
-- The number of Proper Nouns in a review
+- The number of nouns in a review
+- The length of the review
