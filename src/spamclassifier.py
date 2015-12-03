@@ -119,9 +119,9 @@ class FakeReviewClassifier(object):
         # Print the results
         for i in range(0, len(results_array)):
             if results_array[i] == 1:
-                res = "Fake"
+                res = "Genuine"
             else:
-                res="Genuine"
+                res="Fake"
             print test_reviews[i]["id"]," : ", res
 
 
