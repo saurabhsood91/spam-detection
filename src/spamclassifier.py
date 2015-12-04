@@ -45,7 +45,7 @@ class FakeReviewClassifier(object):
         correct_labels = []
         self.review_pos = {}
         self.review_sentiment_counts = {}
-        print len(self.combined_reviews)
+        # print len(self.combined_reviews)
         for review_object in self.combined_reviews:
             # Get review text
             feat = []
@@ -119,17 +119,17 @@ class FakeReviewClassifier(object):
         # Print the results
         for i in range(0, len(results_array)):
             if results_array[i] == 1:
-                res = "Genuine"
+                res = "T"
             else:
-                res="Fake"
-            print test_reviews[i]["id"]," : ", res
+                res="F"
+            print test_reviews[i]["id"],"\t", res
 
 
 
     def MaxEntClassifierTrain(self):
         features = []
         correct_labels = []
-        print len(self.training_set)
+        # print len(self.training_set)
         for review_object in self.training_set:
             # Get review text
             feat = []
@@ -232,12 +232,12 @@ class FakeReviewClassifier(object):
         self.review_pos[id] = pos_count
         # print pos_count
         # Get number of pronouns
-        if "NNP" in pos_count:
-            pronoun_count = pos_count["NNP"]
+        if "NN" in pos_count:
+            pronoun_count = pos_count["NN"]
         else:
             pronoun_count = 0
-        if "VBP" in pos_count:
-            verb_count = pos_count["VBP"]
+        if "VB" in pos_count:
+            verb_count = pos_count["VB"]
         else:
             verb_count = 0
         # print pronoun_count
